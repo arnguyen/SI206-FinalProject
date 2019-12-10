@@ -22,7 +22,6 @@ def index():
     if token_info:
         print("Found cached token!")
         access_token = token_info['access_token']
-        return access_token
     else:
         url = request.url
         code = sp_oauth.parse_response_code(url)
@@ -32,11 +31,7 @@ def index():
             access_token = token_info['access_token']
 
     if access_token:
-        print("Access token available! Trying to run process...")
-        #sp = spotipy.Spotify(access_token)
-        #results = sp.current_user()
-        #return results
-        songs = process(access_token)
+        print("Access token available! Writing access token...")
         write_access_token(access_token)
     else:
         return htmlForLoginButton()
@@ -49,30 +44,6 @@ def htmlForLoginButton():
 def getSPOauthURI():
     auth_url = sp_oauth.get_authorize_url()
     return auth_url
-
-def process(access_token):
-    endpoint_url = "https://api.spotify.com/v1/recommendations?"
-
-    # OUR FILTERS
-    limit=20    
-    market="US"
-    seed_genres="indie"
-    target_danceability=0.9
-
-    query = f'{endpoint_url}limit={limit}&market={market}&seed_genres={seed_genres}&target_danceability={target_danceability}'
-
-    response = requests.get(query, 
-                headers={"Content-Type":"application/json", 
-                            "Authorization": 'Bearer ' + access_token})
-                                                 
-    json_response = response.json()
-    uris = []
-
-    for i in json_response['tracks']:
-                uris.append(i['name'])
-                uris.append(i['artists'][0]['name'])
-                #print(f"\"{i['name']}\" by {i['artists'][0]['name']}")
-    return uris
 
 def write_access_token(access_token):
     f = open('accesstoken.txt', 'w')
