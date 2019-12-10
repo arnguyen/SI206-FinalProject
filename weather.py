@@ -2,6 +2,13 @@ import requests
 import json
 import sqlite3
 import pprint
+import os
+
+full_path = os.path.dirname(os.path.realpath(__file__)) + '/' + 'Weather_db.sqlite'
+conn = sqlite3.connect(full_path)
+cur = conn.cursor()
+cur.execute('CREATE TABLE IF NOT EXISTS Weather_Data(Id TEXT, City TEXT, Date TEXT , Time TEXT, Temp_Max INTEGER, Temp_Min INTEGER, Humidity INTEGER, Description TEXT)')
+cur.execute("CREATE TABLE IF NOT EXISTS Cities (Id INTEGER PRIMARY KEY, City TEXT)")
 
 
 def getWeather(city_name):
@@ -12,44 +19,50 @@ def getWeather(city_name):
     data = get_data.json()
     return data
 
+'''
+def getNameTable(city_name):
+    city_list = []
+    city_list = city_list.append(city_name)
+    for x in range(len(city_list)):
+        cur.execute('INSERT INTO Cities (Id,City) VALUES (?,?)',(x + 1 ,city_list[x]))
+    conn.commit()
+'''
 
-
-def getWeatherData(data):
-    #conn = sqlite3.connect('Weather_db.sqlite')
-    #cur = conn.cursor()
-    #cur.execute('DROP TABLE IF EXISTS Weather_Data')
-    #cur.execute('CREATE TABLE Weather_Data(Id TEXT, City TEXT, Time TEXT, Temp_Max INTEGER, Temp_Min INTEGER, Humidity INTEGER, Description TEXT)')
+def getWeatherTable(data):
     _city_id = data['city']['id']
     _city_name = data['city']['name']
     count = 0 
+    if cur.execute('SELECT City FROM Weather_Data WHERE City = ?', (_city_name, )).fetchone() != None:
+        print('City is already added. Try a different city!')
+        return
     for city in data['list']:
-        _time = city['dt_txt']
+        _time_and_date = city['dt_txt']
+        _date = _time_and_date.split()[0]
+        _time = _time_and_date.split()[1]
         _max_temp = city['main']['temp_max']
         _min_temp = city['main']['temp_min']
         _humidity = city['main']['humidity']
         _description = city['weather'][0]['description']
-        count += 1
-        if count == 17:
+        if count == 20:
             break
-        cur.execute('INSERT INTO Weather_Data(Id, City, Time, Temp_Max, Temp_Min, Humidity, Description) VALUES (?,?,?,?,?,?,?)', (_city_id, _city_name, _time, _max_temp, _min_temp, _humidity, _description))
+        cur.execute('INSERT INTO Weather_Data(Id, City, Date, Time, Temp_Max, Temp_Min, Humidity, Description) VALUES (?,?,?,?,?,?,?,?)', (_city_id, _city_name, _date, _time, _max_temp, _min_temp, _humidity, _description))
+        count += 1
         conn.commit()
+    cur.execute('INSERT INTO Cities (City) VALUES (?)',(_city_name, ))
+    conn.commit()
 
-        
-conn = sqlite3.connect('Weather_db.sqlite')
-cur = conn.cursor()
-cur.execute('DROP TABLE IF EXISTS Weather_Data')
-cur.execute('CREATE TABLE Weather_Data(Id TEXT, City TEXT, Time TEXT, Temp_Max INTEGER, Temp_Min INTEGER, Humidity INTEGER, Description TEXT)')
+
 
 def main():
-    cities = ['Boston', 'Chicago', 'Detroit', 'Los Angeles', 'Manhattan', 'Nashville', 'New Orleans', 'Oakland', 'Philadelphia', 'Seattle']
+    city_name = input('Enter a city: ')
+    weather = getWeather(city_name)
+    getWeatherTable(weather)
+
+    #getNameTable(city_name)
     
-    for city in cities:
-        weather = getWeather(city)
-        getWeatherData(weather)
 
 if __name__ == "__main__":
     main()
-    #unittest.main(verbosity = 2)
 
 '''
 Boston = 'Boston'
