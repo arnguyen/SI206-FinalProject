@@ -42,10 +42,12 @@ class DataCollection:
         self.data = []
 
     def collectData(self):
+        """ Connects to api, fills self.data with lists of track info """
+
         endpoint_url = "https://api.spotify.com/v1/recommendations?"
 
-        # OUR FILTERS
-        limit=1    
+        # FILTERS
+        limit=50    
         market="US"
         seed_genres=self.genre
         access_token=self.access_token
@@ -53,10 +55,9 @@ class DataCollection:
         query = f'{endpoint_url}limit={limit}&market={market}&seed_genres={seed_genres}'
 
         response = requests.get(query, headers={"Content-Type":"application/json", "Authorization": 'Bearer ' + access_token})
-                                                 
         json_response = response.json()
+        
         track_info = []
-        #print(json_response)
 
         for i in json_response['tracks']:
             track_info.append(i['id'])
@@ -86,9 +87,18 @@ def main():
     cur, conn = setUpDatabase('spotify.db')
     
     # run data collection
-    happy = DataCollection("indie", access_token)
+    happy = DataCollection("happy", access_token)
     happy.collectData()
-    print(happy.data)
+    
+    rainy = DataCollection("rainy-day", access_token)
+    rainy.collectData()
+
+    sad = DataCollection("sad", access_token)
+    sad.collectData()
+
+    holidays = DataCollection("holidays", access_token)
+    holidays.collectData()
+    
 
 if __name__ == "__main__":
     main()
