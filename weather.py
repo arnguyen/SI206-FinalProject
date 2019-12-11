@@ -28,13 +28,25 @@ def getNameTable(city_name):
     conn.commit()
 '''
 
-def getWeatherTable(data):
-    _city_id = data['city']['id']
+def getCityTable(data):
     _city_name = data['city']['name']
-    count = 0 
     if cur.execute('SELECT City FROM Weather_Data WHERE City = ?', (_city_name, )).fetchone() != None:
         print('City is already added. Try a different city!')
         return
+    cur.execute('INSERT INTO Cities (City) VALUES (?)',(_city_name, ))
+    conn.commit()
+
+def getWeatherTable(data):
+    count = 0 
+    
+    city_ids = {}
+    cur.execute("SELECT Id, City FROM Cities")
+    result = cur.fetchall()
+    for Id, City in result:
+        city_ids[City] = Id
+    
+    _city_name = data['city']['name']
+    _city_id = data['city']['id']
     for city in data['list']:
         _time_and_date = city['dt_txt']
         _date = _time_and_date.split()[0]
@@ -45,17 +57,15 @@ def getWeatherTable(data):
         _description = city['weather'][0]['description']
         if count == 20:
             break
-        cur.execute('INSERT INTO Weather_Data(Id, City, Date, Time, Temp_Max, Temp_Min, Humidity, Description) VALUES (?,?,?,?,?,?,?,?)', (_city_id, _city_name, _date, _time, _max_temp, _min_temp, _humidity, _description))
+        cur.execute('INSERT INTO Weather_Data(Id, City, Date, Time, Temp_Max, Temp_Min, Humidity, Description) VALUES (?,?,?,?,?,?,?,?)', (_city_id, city_ids[_city_name], _date, _time, _max_temp, _min_temp, _humidity, _description))
         count += 1
-        conn.commit()
-    cur.execute('INSERT INTO Cities (City) VALUES (?)',(_city_name, ))
+
     conn.commit()
-
-
 
 def main():
     city_name = input('Enter a city: ')
     weather = getWeather(city_name)
+    getCityTable(weather)
     getWeatherTable(weather)
 
     #getNameTable(city_name)
