@@ -4,7 +4,7 @@ import sqlite3
 import pprint
 import os
 
-full_path = os.path.dirname(os.path.realpath(__file__)) + '/' + 'Weather_db.sqlite'
+full_path = os.path.dirname(os.path.realpath(__file__)) + '/' + 'spotifyweather.db'
 conn = sqlite3.connect(full_path)
 cur = conn.cursor()
 cur.execute('CREATE TABLE IF NOT EXISTS Weather_Data(Id TEXT, City TEXT, Date TEXT , Time TEXT, Temp_Max INTEGER, Temp_Min INTEGER, Humidity INTEGER, Description TEXT)')

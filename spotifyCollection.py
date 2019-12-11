@@ -133,7 +133,7 @@ def main():
     genre_data = genre_collector.getData()
 
     # set up database
-    cur, conn = setUpDatabase('spotify.db')
+    cur, conn = setUpDatabase('spotifyweather.db')
 
     # set up tables
     setUpGenreTable(genre_data, cur, conn)
