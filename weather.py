@@ -73,11 +73,13 @@ def user_response():
 def main():
     city_name = input('Enter a city: ')
     weather = getWeather(city_name)
+    if weather['cod'] == '404':
+        print("Invalid city. Please try again.")
+        return main()
     if getCityTable(weather):
         getWeatherTable(weather)
 
-    user_response()
-    
+    user_response()  
 
 if __name__ == "__main__":
     main()
