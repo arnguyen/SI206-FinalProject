@@ -15,7 +15,7 @@ def check_access_token(access_token):
     
     endpoint_url = "https://api.spotify.com/v1/recommendations?"
 
-    # OUR FILTERS
+    # FILTERS
     limit=1    
     market="US"
     seed_genres="indie"
@@ -35,11 +35,50 @@ def setUpDatabase(db_name):
     cur = conn.cursor()
     return cur, conn
 
+def setUpGenreTable(data, cur, conn):
+    """ Sets up Genre Table """
+    
+    cur.execute('''CREATE TABLE IF NOT EXISTS Genres (genre_id INTEGER PRIMARY KEY, Title TEXT)''')
+
+    if cur.execute('SELECT Title FROM Genres WHERE Title = ?', (data[0][-1], )).fetchone() != None:
+        print(data[0][-1] + ' has already been added to Genres.')
+        return
+        
+    try:
+        cur.execute("INSERT INTO Genres (Title) VALUES (?)", (data[0][-1],))
+    except:
+        print("Error in Genre Insertion")
+    conn.commit()
+
+
+def setUpTrackTable(data, cur, conn):
+    """ Sets up Track table """
+
+    genre_ids = {}
+    cur.execute("SELECT genre_id, Title FROM Genres")
+    result = cur.fetchall()
+    for genre_id, title in result:
+        genre_ids[title] = genre_id
+
+    cur.execute('''CREATE TABLE IF NOT EXISTS Tracks (track_id TEXT PRIMARY KEY, Title TEXT, Album TEXT, Artist TEXT, Popularity INTEGER, genre_id INTEGER)''') 
+    for track in data:
+        if cur.execute('SELECT track_id FROM Tracks WHERE track_id = ?', (track[0], )).fetchone() != None:
+            print(track[0] + ' has already been added to Tracks.')
+            continue
+        try:
+            cur.execute("INSERT INTO Tracks (track_id, Title, Album, Artist, Popularity, genre_id) VALUES (?,?,?,?,?,?)", (track[0], track[1], track[2], track[3], track[4], genre_ids[track[5]]))
+        except:
+            print("Error in Track Insertion") 
+    conn.commit()
+
 class DataCollection:
     def __init__(self, genre, access_token):
         self.genre = genre
         self.access_token = access_token
         self.data = []
+    
+    def getData(self):
+        return self.data
 
     def collectData(self):
         """ Connects to api, fills self.data with lists of track info """
@@ -47,7 +86,7 @@ class DataCollection:
         endpoint_url = "https://api.spotify.com/v1/recommendations?"
 
         # FILTERS
-        limit=50    
+        limit=20    
         market="US"
         seed_genres=self.genre
         access_token=self.access_token
@@ -56,10 +95,9 @@ class DataCollection:
 
         response = requests.get(query, headers={"Content-Type":"application/json", "Authorization": 'Bearer ' + access_token})
         json_response = response.json()
-        
-        track_info = []
 
         for i in json_response['tracks']:
+            track_info = []
             track_info.append(i['id'])
             track_info.append(i['name'])
             track_info.append(i['album']['name'])
@@ -67,6 +105,8 @@ class DataCollection:
             track_info.append(i['popularity'])
             track_info.append(seed_genres)           
             self.data.append(track_info)
+        
+        return json_response
         
 
 def main():
@@ -83,21 +123,23 @@ def main():
         import spotifyOauth 
         access_token = read_access_token()
     
+    # run data collection
+    genre = input("Pick a Genre: ")
+    genre_collector = DataCollection(genre, access_token)
+    json_response = genre_collector.collectData()
+    if len(json_response['tracks']) == 0:
+        print("Invalid Genre. Please Try Again")
+        return main()
+    genre_data = genre_collector.getData()
+
     # set up database
     cur, conn = setUpDatabase('spotify.db')
-    
-    # run data collection
-    happy = DataCollection("happy", access_token)
-    happy.collectData()
-    
-    rainy = DataCollection("rainy-day", access_token)
-    rainy.collectData()
 
-    sad = DataCollection("sad", access_token)
-    sad.collectData()
+    # set up tables
+    setUpGenreTable(genre_data, cur, conn)
+    setUpTrackTable(genre_data, cur, conn)
 
-    holidays = DataCollection("holidays", access_token)
-    holidays.collectData()
+    return
     
 
 if __name__ == "__main__":
