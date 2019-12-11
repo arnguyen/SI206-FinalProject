@@ -7,7 +7,7 @@ import requests
 from collections import defaultdict
 import statistics
 
-#### TO DO ####
+#### Deals with user input for running data collection ####
 
 def dataCollection():   
     usr_input = input("Do you want to collect data? [y/n]")
@@ -33,6 +33,7 @@ def dataCollectionHandler():
         return dataCollectionHandler()
 
 #############################
+
 
 #### Connect to database ####
 
@@ -71,10 +72,13 @@ def avgGenrePopularity(data):
     genremeans = {}
     for i in range(len(genres)):
         genremeans[genres[i]] = pop_means[i]
+
     return genremeans
 
 ##############################
 
+
+#### Calculations for City and Temperature ####
 
 def cityTemps(cur, conn):
     joined_data = []
@@ -82,14 +86,52 @@ def cityTemps(cur, conn):
         joined_data.append((row[0], row[1], row[2]))
     return joined_data
 
+def avgCityTemp(data):
+    avg_temps = []
+    for item in data:
+        temp = (item[0] + item[1]) / 2
+        city = item[2]
+        avg_temps.append((city, temp))
+    
+    citydict = defaultdict(list)
+    for item in avg_temps:
+        citydict[item[0]].append(item[1])
+    citydict = dict(citydict)
+    
+    temp_means = []
+    for temp in citydict.values():
+        tempavg = statistics.mean(temp)
+        temp_means.append(tempavg)
+
+    cities = []
+    for city in citydict:
+        cities.append(city)
+
+    citymeans = {}
+    for i in range(len(cities)):
+        citymeans[cities[i]] = temp_means[i]
+
+    return citymeans
+
+##############################
+
+
+#### MAIN ####
+
 def main():
+    # collect data if necessary
     dataCollection()
+
+    # connect to database
     cur, conn = databaseConnection('spotifyweather.db')
+
+    #run calculations to find average popularity of each genre
     genreinfo = popularityGenre(cur, conn)
     genre_means = avgGenrePopularity(genreinfo)
-    print(genre_means)
 
-    cityTemps(cur, conn)
+    # run calculations to find average temperature of each city (in a given week)
+    cityinfo = cityTemps(cur, conn)
+    city_means = avgCityTemp(cityinfo)
 
 if __name__ == "__main__":
     main()
