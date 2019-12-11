@@ -53,6 +53,7 @@ def setUpGenreTable(data, cur, conn):
         
     try:
         cur.execute("INSERT INTO Genres (Title) VALUES (?)", (data[0][-1],))
+        print("Successful Genre Insertion!")
     except:
         print("Error in Genre Insertion")
     conn.commit()
@@ -73,11 +74,25 @@ def setUpTrackTable(data, cur, conn):
             continue
         try:
             cur.execute("INSERT INTO Tracks (track_id, Title, Album, Artist, Popularity, genre_id) VALUES (?,?,?,?,?,?)", (track[0], track[1], track[2], track[3], track[4], genre_ids[track[5]]))
+            print("Successful Track Insertion!")
         except:
             print("Error in Track Insertion") 
     conn.commit()
 
 ############################
+
+#### Function to aid user interface ####
+
+def user_response():
+    usr_response = input("Would you like to enter another genre? [y/n]")
+    if usr_response.lower() == 'y':
+        return main()
+    elif usr_response.lower() == "n":
+        print("Thanks for your time!")
+        return
+    else:
+        print("Invalid input. Please try again.")
+        return user_response()
 
 
 #### Class for Data Collection ####
@@ -153,6 +168,8 @@ def main():
     # set up tables
     setUpGenreTable(genre_data, cur, conn)
     setUpTrackTable(genre_data, cur, conn)
+
+    user_response()
 
     return   
 

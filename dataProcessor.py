@@ -7,10 +7,32 @@ import requests
 from collections import defaultdict
 import statistics
 
-def fillDatabase():
-    for i in range(5):
+#### TO DO ####
+
+def dataCollection():   
+    usr_input = input("Do you want to collect data? [y/n]")
+    if usr_input.lower() == 'y':  
+        dataCollectionHandler()
+    elif usr_input.lower() == 'n':
+        return
+    else:
+        print("Invalid input. Please try again.")
+        return dataCollection()
+
+def dataCollectionHandler():
+    usr_input = input("Would you like to collect track data, weather data, or both? [t/w/b]")
+    if usr_input.lower() == 't':
+        spotifyCollection.main()
+    elif usr_input.lower() == 'w':
+        weather.main()
+    elif usr_input.lower() == 'b':
         spotifyCollection.main()
         weather.main()
+    else:
+        print("Invalid input. Please try again.")
+        return dataCollectionHandler()
+
+#############################
 
 #### Connect to database ####
 
@@ -53,6 +75,7 @@ def avgGenrePopularity(data):
 
 ##############################
 
+
 def cityTemps(cur, conn):
     joined_data = []
     for row in cur.execute('SELECT Weather_Data.Temp_Min, Weather_Data.Temp_Max, Cities.City FROM Weather_Data INNER JOIN Cities ON Weather_Data.City=Cities.Id'):
@@ -60,7 +83,7 @@ def cityTemps(cur, conn):
     return joined_data
 
 def main():
-    #fillDatabase()
+    dataCollection()
     cur, conn = databaseConnection('spotifyweather.db')
     genreinfo = popularityGenre(cur, conn)
     genre_means = avgGenrePopularity(genreinfo)
