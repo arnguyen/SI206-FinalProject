@@ -3,6 +3,8 @@ import os
 import requests
 import sys
 
+#### Deals with API ####
+
 def read_access_token():
     """ Reads access token written from spotifyOauth.py """
 
@@ -27,6 +29,11 @@ def check_access_token(access_token):
     
     return json_response
 
+############################
+
+
+#### Deals with Database ####
+
 def setUpDatabase(db_name):
     """ Sets up database """
 
@@ -50,7 +57,6 @@ def setUpGenreTable(data, cur, conn):
         print("Error in Genre Insertion")
     conn.commit()
 
-
 def setUpTrackTable(data, cur, conn):
     """ Sets up Track table """
 
@@ -70,6 +76,11 @@ def setUpTrackTable(data, cur, conn):
         except:
             print("Error in Track Insertion") 
     conn.commit()
+
+############################
+
+
+#### Class for Data Collection ####
 
 class DataCollection:
     def __init__(self, genre, access_token):
@@ -107,7 +118,11 @@ class DataCollection:
             self.data.append(track_info)
         
         return json_response
-        
+
+############################
+     
+
+#### MAIN ####
 
 def main():
     # read current access token and check if it connects
@@ -139,8 +154,7 @@ def main():
     setUpGenreTable(genre_data, cur, conn)
     setUpTrackTable(genre_data, cur, conn)
 
-    return
-    
+    return   
 
 if __name__ == "__main__":
     main()
