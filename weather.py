@@ -19,22 +19,16 @@ def getWeather(city_name):
     data = get_data.json()
     return data
 
-'''
-def getNameTable(city_name):
-    city_list = []
-    city_list = city_list.append(city_name)
-    for x in range(len(city_list)):
-        cur.execute('INSERT INTO Cities (Id,City) VALUES (?,?)',(x + 1 ,city_list[x]))
-    conn.commit()
-'''
 
 def getCityTable(data):
     _city_name = data['city']['name']
-    if cur.execute('SELECT City FROM Weather_Data WHERE City = ?', (_city_name, )).fetchone() != None:
-        print('City is already added. Try a different city!')
-        return
+    if cur.execute('SELECT City FROM Cities WHERE City = ?', (_city_name, )).fetchone() != None:
+        print('City has already been added. Please try again.')
+        return False
     cur.execute('INSERT INTO Cities (City) VALUES (?)',(_city_name, ))
+    print("Successful City Insertion!")
     conn.commit()
+    return True
 
 def getWeatherTable(data):
     count = 0 
@@ -59,72 +53,31 @@ def getWeatherTable(data):
             break
         cur.execute('INSERT INTO Weather_Data(Id, City, Date, Time, Temp_Max, Temp_Min, Humidity, Description) VALUES (?,?,?,?,?,?,?,?)', (_city_id, city_ids[_city_name], _date, _time, _max_temp, _min_temp, _humidity, _description))
         count += 1
-
     conn.commit()
+
+#### Function to aid user interface ####
+
+def user_response():
+    usr_response = input("Would you like to enter another city? [y/n]")
+    if usr_response.lower() == 'y':
+        return main()
+    elif usr_response.lower() == "n":
+        print("Thanks for your time!")
+        return
+    else:
+        print("Invalid input. Please try again.")
+        return user_response()
+
+############################
 
 def main():
     city_name = input('Enter a city: ')
     weather = getWeather(city_name)
-    getCityTable(weather)
-    getWeatherTable(weather)
+    if getCityTable(weather):
+        getWeatherTable(weather)
 
-    #getNameTable(city_name)
+    user_response()
     
 
 if __name__ == "__main__":
     main()
-
-'''
-Boston = 'Boston'
-Boston_Weather = getWeather(Boston)
-getWeatherData(Boston_Weather)
-
-Chicago = 'Chicago'
-Chicago_Weather = getWeather(Chicago)
-getWeatherData(Chicago_Weather)
-
-Detroit = 'Detroit'
-Detroit_Weather = getWeather(Detroit)
-getWeatherData(Detroit)
-
-Los_Angeles = 'Los_Angeles'
-LA_Weather = getWeather(Los_Angeles)
-getWeatherData(LA_Weather)
-
-Manhattan = 'Manhattan'
-Manhattan_Weather = getWeather(Manhattan)
-getWeatherData(Manhattan_Weather)
-
-Nashville = 'Nashville'
-Nashville_Weather = getWeather(Nashville)
-getWeatherData(Nashville_Weather)
-
-New_Orleans = 'New Orleans'
-NO_Weather = getWeather(New_Orleans)
-getWeatherData(NO_Weather)
-
-Oakland = 'Oakland'
-Oakland_Weather = getWeather(Oakland)
-getWeatherData(Oakland_Weather)
-
-Philadelphia = 'Philadelphia'
-Philadelphia_Weather = getWeather(Philadelphia)
-getWeatherData(Philadelphia_Weather)
-
-Seattle = 'Seattle'
-Seattle_Weather = getWeather(Seattle)
-getWeatherData(Seattle_Weather)
-'''
-
-
-
-
-
-
-
-
-
-    
-
-
-

@@ -81,6 +81,7 @@ def setUpTrackTable(data, cur, conn):
 
 ############################
 
+
 #### Function to aid user interface ####
 
 def user_response():
@@ -93,6 +94,8 @@ def user_response():
     else:
         print("Invalid input. Please try again.")
         return user_response()
+
+############################
 
 
 #### Class for Data Collection ####
