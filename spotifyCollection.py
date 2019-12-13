@@ -90,7 +90,6 @@ def user_response():
     if usr_response.lower() == 'y':
         return main()
     elif usr_response.lower() == "n":
-        print("Thanks for your time!")
         return
     else:
         print("Invalid input. Please try again.")

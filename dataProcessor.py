@@ -230,8 +230,10 @@ def main():
     writeData('genrepopularity.txt', genre_means)
 
     # run calculations to find box plot values for each genre
-    five_summary = findValues(genreinfo)
-    writeData('genresummary.txt', five_summary)
+    #five_summary = findValues(genreinfo)
+    #writeData('genresummary.txt', five_summary)
+    boxplotdata = sortPopularities(genreinfo)
+    writeData('genresummary.txt', boxplotdata)
 
     # run calculations to find average temperatures of each city (in a given week)
     cityinfo = cityTemps(cur, conn)
