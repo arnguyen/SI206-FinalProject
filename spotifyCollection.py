@@ -10,6 +10,7 @@ def read_access_token():
 
     f = open('accesstoken.txt', 'r')
     access_token = f.read()
+    f.close()
     return access_token
 
 def check_access_token(access_token):

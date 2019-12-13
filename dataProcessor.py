@@ -6,6 +6,7 @@ import sys
 import requests
 from collections import defaultdict
 import statistics
+import json
 
 #### Deals with user input for running data collection ####
 
@@ -42,6 +43,16 @@ def databaseConnection(db_name):
     conn = sqlite3.connect(path+'/'+db_name)
     cur = conn.cursor()
     return cur, conn
+
+##############################
+
+
+#### Function for writing to file ####
+
+def writeData(filename, data):
+    f = open(filename, 'w')
+    f.write(json.dumps(data))
+    f.close()
 
 ##############################
 
@@ -102,6 +113,8 @@ def avgCityTemp(data):
     for temp in citydict.values():
         tempavg = statistics.mean(temp)
         temp_means.append(tempavg)
+    for i in range(len(temp_means)):
+        temp_means[i] = temp_means[i] * (9/5) - 459.67
 
     cities = []
     for city in citydict:
@@ -132,6 +145,10 @@ def main():
     # run calculations to find average temperature of each city (in a given week)
     cityinfo = cityTemps(cur, conn)
     city_means = avgCityTemp(cityinfo)
+
+    # write data to files
+    writeData('genrepopularity.txt', genre_means)
+    writeData('citytemp.txt', city_means)
 
 if __name__ == "__main__":
     main()
