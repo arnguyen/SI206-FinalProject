@@ -36,6 +36,22 @@ def dataCollectionHandler():
 #############################
 
 
+#### Function to aid user interface ####
+
+def user_response():
+    usr_response = input("Successful data processing! Would you like to process again? [y/n]")
+    if usr_response.lower() == 'y':
+        return main()
+    elif usr_response.lower() == "n":
+        print("Thanks for your time!")
+        return
+    else:
+        print("Invalid input. Please try again.")
+        return user_response()
+
+############################
+
+
 #### Connect to database ####
 
 def databaseConnection(db_name):
@@ -133,7 +149,11 @@ def avgCityTemp(data):
 
 def main():
     # collect data if necessary
-    dataCollection()
+    try:
+        dataCollection()
+    except:
+        print("Error occured in data collection. Please make sure access code is updated and try again.")
+        return 
 
     # connect to database
     cur, conn = databaseConnection('spotifyweather.db')
@@ -149,6 +169,10 @@ def main():
     # write data to files
     writeData('genrepopularity.txt', genre_means)
     writeData('citytemp.txt', city_means)
+
+    user_response()
+
+    return
 
 if __name__ == "__main__":
     main()
