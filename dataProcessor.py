@@ -81,11 +81,48 @@ def popularityGenre(cur, conn):
         joined_data.append((row[0], row[1]))
     return joined_data
 
-def avgGenrePopularity(data):
+def genrePopularities(data):
     genredict = defaultdict(list)
     for item in data:
         genredict[item[1]].append(item[0])
     genredict = dict(genredict)
+    return genredict
+
+def sortPopularities(data):
+    genredict = genrePopularities(data)
+
+    for genre in genredict:
+        genredict[genre].sort()
+
+    return genredict
+
+def findValues(data):
+    genredict = sortPopularities(data)
+
+    five_summary = []
+    for popularities in genredict.values():
+        midindex = int(len(popularities) / 2)
+
+        minpop = popularities[0]
+        first_quart = statistics.median(popularities[:midindex])
+        median_pop = statistics.median(popularities)
+        third_quart = statistics.median(popularities[midindex + 1:])
+        maxpop = popularities[-1]
+        
+        five_summary.append((minpop, first_quart, median_pop, third_quart, maxpop))
+    
+    genres = []
+    for genre in genredict:
+        genres.append(genre)
+
+    genre_summary = {}
+    for i in range(len(genres)):
+        genre_summary[genres[i]] = five_summary[i]
+
+    return genre_summary
+
+def avgGenrePopularity(data):
+    genredict = genrePopularities(data)
 
     pop_means = []
     for pop in genredict.values():
@@ -113,18 +150,24 @@ def cityTemps(cur, conn):
         joined_data.append((row[0], row[1], row[2]))
     return joined_data
 
-def avgCityTemp(data):
-    avg_temps = []
-    for item in data:
-        temp = (item[0] + item[1]) / 2
-        city = item[2]
-        avg_temps.append((city, temp))
-    
+def getForecasts(cur, conn):
+    forecasts = []
+    for row in cur.execute('SELECT Description FROM Weather_Data'):
+        forecasts.append(row[0])
+    return forecasts
+
+def forecastFreq(data):
+    forecast_freq = {}
+    for forecast in data:
+        forecast_freq[forecast] = forecast_freq.get(forecast, 0) + 1
+    return forecast_freq
+
+def calculatemeans(data):
     citydict = defaultdict(list)
-    for item in avg_temps:
+    for item in data:
         citydict[item[0]].append(item[1])
     citydict = dict(citydict)
-    
+
     temp_means = []
     for temp in citydict.values():
         tempavg = statistics.mean(temp)
@@ -139,8 +182,30 @@ def avgCityTemp(data):
     citymeans = {}
     for i in range(len(cities)):
         citymeans[cities[i]] = temp_means[i]
-
+    
     return citymeans
+
+def avgLowTemp(data):
+    low_temps = []
+    for item in data:
+        city = item[2]
+        temp = item[0]
+        low_temps.append((city, temp))
+
+    citylows = calculatemeans(low_temps)
+
+    return citylows
+
+def avgHighTemp(data):
+    high_temps = []
+    for item in data:
+        city = item[2]
+        temp = item[1]
+        high_temps.append((city, temp))
+    
+    cityhighs = calculatemeans(high_temps)
+
+    return cityhighs
 
 ##############################
 
@@ -158,18 +223,30 @@ def main():
     # connect to database
     cur, conn = databaseConnection('spotifyweather.db')
 
-    #run calculations to find average popularity of each genre
+    # run calculations to find average popularity of each genre
     genreinfo = popularityGenre(cur, conn)
+
     genre_means = avgGenrePopularity(genreinfo)
-
-    # run calculations to find average temperature of each city (in a given week)
-    cityinfo = cityTemps(cur, conn)
-    city_means = avgCityTemp(cityinfo)
-
-    # write data to files
     writeData('genrepopularity.txt', genre_means)
-    writeData('citytemp.txt', city_means)
 
+    # run calculations to find box plot values for each genre
+    five_summary = findValues(genreinfo)
+    writeData('genresummary.txt', five_summary)
+
+    # run calculations to find average temperatures of each city (in a given week)
+    cityinfo = cityTemps(cur, conn)
+
+    low_means = avgLowTemp(cityinfo)
+    writeData('avglowtemp.txt', low_means)
+
+    high_means = avgHighTemp(cityinfo)
+    writeData('avghightemp.txt', high_means)
+
+    # run calculations to find frequency of each weather forecast
+    forecasts = getForecasts(cur, conn)
+    forecast_freq = forecastFreq(forecasts)
+    writeData('forecastfreq.txt', forecast_freq)
+    
     user_response()
 
     return

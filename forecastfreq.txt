@@ -1,0 +1,1 @@
+{"scattered clouds": 16, "clear sky": 37, "few clouds": 5, "overcast clouds": 67, "broken clouds": 17, "light rain": 16, "moderate rain": 2}
